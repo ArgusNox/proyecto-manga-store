@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "titulo": "Chainsaw Man Tomo 1",
+    "precio": 9800,
+    "stock": 12,
+    "genero": "Shonen oscuro",
+    "autor": "Tatsuki Fujimoto",
+    "imagen": "/images/manga-1.jpg",
+    "sinopsis": "Denji vive una vida miserable hasta fusionarse con Pochita y convertirse en Chainsaw Man."
+  },
+  {
+    "id": 2,
+    "titulo": "Oshi no Ko Tomo 1",
+    "precio": 8900,
+    "stock": 15,
+    "genero": "Drama / Misterio",
+    "autor": "Aka Akasaka",
+    "imagen": "/images/manga-2.jpg",
+    "sinopsis": "Un médico y su paciente reencarnan como los hijos de su idol favorita, revelando el lado oscuro del espectáculo."
+  },
+  {
+    "id": 3,
+    "titulo": "Death Note Tomo 1",
+    "precio": 10500,
+    "stock": 10,
+    "genero": "Thriller sobrenatural",
+    "autor": "Tsugumi Ohba",
+    "imagen": "/images/manga-3.jpg",
+    "sinopsis": "Light Yagami encuentra un cuaderno capaz de matar a cualquiera cuyo nombre sea escrito en él."
+  },
+  {
+    "id": 4,
+    "titulo": "Gantz Tomo 1",
+    "precio": 11200,
+    "stock": 7,
+    "genero": "Seinen / Acción",
+    "autor": "Hiroya Oku",
+    "imagen": "/images/manga-4.jpg",
+    "sinopsis": "Tras morir, un grupo de personas es obligado a participar en un juego sangriento cazando alienígenas."
+  },
+  {
+    "id": 5,
+    "titulo": "Berserk Tomo 1",
+    "precio": 12500,
+    "stock": 8,
+    "genero": "Fantasía oscura",
+    "autor": "Kentaro Miura",
+    "imagen": "/images/manga-5.jpg",
+    "sinopsis": "Guts, el espadachín negro, inicia un viaje brutal marcado por la venganza, monstruos y el destino."
+  },
+  {
+    "id": 6,
+    "titulo": "Beastars Tomo 1",
+    "precio": 9500,
+    "stock": 9,
+    "genero": "Drama psicológico",
+    "autor": "Paru Itagaki",
+    "imagen": "/images/manga-6.jpg",
+    "sinopsis": "En un mundo de animales antropomórficos, el lobo Legoshi lucha contra sus instintos tras un asesinato en su escuela."
+  }
+]
