@@ -2,9 +2,14 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 
 const CartContext = createContext()
+const COUPONS = {
+  MANGA10: 0.1,
+  FENIX15: 0.15
+}
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([])
+  const [coupon, setCoupon] = useState(null)
 
   const addToCart = (product) => {
     setCart((prevCart) => {
@@ -28,15 +33,41 @@ export function CartProvider({ children }) {
 
   const clearCart = () => {
     setCart([])
+    setCoupon(null)
+  }
+
+  const applyCoupon = (code) => {
+    const normalizedCode = code.trim().toUpperCase()
+    const discountRate = COUPONS[normalizedCode]
+
+    if (!discountRate) {
+      return false
+    }
+
+    setCoupon({ code: normalizedCode, discountRate })
+    return true
+  }
+
+  const removeCoupon = () => {
+    setCoupon(null)
   }
 
   const cartCount = useMemo(() => {
     return cart.reduce((acc, item) => acc + item.quantity, 0)
   }, [cart])
 
-  const cartTotal = useMemo(() => {
+  const cartTotalBeforeDiscount = useMemo(() => {
     return cart.reduce((acc, item) => acc + item.precio * item.quantity, 0)
   }, [cart])
+
+  const discountAmount = useMemo(() => {
+    if (!coupon) return 0
+    return Math.round(cartTotalBeforeDiscount * coupon.discountRate)
+  }, [cartTotalBeforeDiscount, coupon])
+
+  const cartTotal = useMemo(() => {
+    return Math.max(cartTotalBeforeDiscount - discountAmount, 0)
+  }, [cartTotalBeforeDiscount, discountAmount])
 
   return (
     <CartContext.Provider
@@ -45,7 +76,12 @@ export function CartProvider({ children }) {
         addToCart,
         removeFromCart,
         clearCart,
+        applyCoupon,
+        removeCoupon,
+        coupon,
         cartCount,
+        cartTotalBeforeDiscount,
+        discountAmount,
         cartTotal
       }}
     >
