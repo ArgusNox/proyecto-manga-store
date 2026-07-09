@@ -1,24 +1,50 @@
 import { useEffect, useState } from 'react'
 import Item from '../components/Item/Item'
+import { getProducts, isFirebaseConfigured } from '../services/firebaseRest'
+
+async function getLocalProducts() {
+  const response = await fetch('/data/productos.json')
+
+  if (!response.ok) {
+    throw new Error('No se pudo cargar el catálogo local de mangas.')
+  }
+
+  return response.json()
+}
 
 function Productos() {
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [sourceMessage, setSourceMessage] = useState(null)
 
   useEffect(() => {
     const obtenerProductos = async () => {
-      try {
-        const respuesta = await fetch('/data/productos.json')
+      setCargando(true)
+      setError(null)
 
-        if (!respuesta.ok) {
-          throw new Error('No se pudo cargar el catálogo de mangas.')
+      try {
+        if (isFirebaseConfigured()) {
+          const firebaseProducts = await getProducts()
+
+          if (firebaseProducts.length > 0) {
+            setProductos(firebaseProducts)
+            setSourceMessage('Catálogo cargado desde Firebase Firestore.')
+            return
+          }
         }
 
-        const datos = await respuesta.json()
-        setProductos(datos)
+        const localProducts = await getLocalProducts()
+        setProductos(localProducts)
+        setSourceMessage('Catálogo de respaldo cargado desde JSON local.')
       } catch (error) {
-        setError(error.message)
+        try {
+          const localProducts = await getLocalProducts()
+          setProductos(localProducts)
+          setSourceMessage('Firestore no respondió. Se muestra el catálogo local de respaldo.')
+        } catch {
+          setError(error.message)
+        }
       } finally {
         setCargando(false)
       }
@@ -31,7 +57,7 @@ function Productos() {
     return (
       <section className="page-section">
         <h2>Catálogo de mangas</h2>
-        <p>Cargando catálogo...</p>
+        <p className="estado-carga">Cargando catálogo...</p>
       </section>
     )
   }
@@ -40,7 +66,7 @@ function Productos() {
     return (
       <section className="page-section">
         <h2>Catálogo de mangas</h2>
-        <p>Error: {error}</p>
+        <p className="form-message form-message--error">Error: {error}</p>
       </section>
     )
   }
@@ -52,6 +78,7 @@ function Productos() {
         <p>
           Explorá tomos de shonen, seinen, shojo y mucho más en nuestra selección.
         </p>
+        {sourceMessage && <span className="data-source">{sourceMessage}</span>}
       </div>
 
       <div className="catalog-grid">
