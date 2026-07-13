@@ -10,6 +10,7 @@ function Carrito() {
     applyCoupon,
     removeCoupon,
     coupon,
+    couponStillEligible,
     cartTotalBeforeDiscount,
     discountAmount,
     cartTotal
@@ -17,17 +18,29 @@ function Carrito() {
 
   const [couponInput, setCouponInput] = useState('')
   const [couponMessage, setCouponMessage] = useState(null)
+  const [couponMessageType, setCouponMessageType] = useState('')
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
 
-  const handleCouponSubmit = (event) => {
+  const handleCouponSubmit = async (event) => {
     event.preventDefault()
+    setApplyingCoupon(true)
+    setCouponMessage(null)
 
-    if (!couponInput.trim()) {
-      setCouponMessage('Ingresá un cupón para aplicarlo.')
-      return
+    const result = await applyCoupon(couponInput)
+    setCouponMessage(result.message)
+    setCouponMessageType(result.ok ? 'success' : 'error')
+
+    if (result.ok) {
+      setCouponInput('')
     }
 
-    const applied = applyCoupon(couponInput)
-    setCouponMessage(applied ? 'Cupón aplicado correctamente.' : 'Cupón inválido.')
+    setApplyingCoupon(false)
+  }
+
+  const handleRemoveCoupon = () => {
+    removeCoupon()
+    setCouponMessage('Cupón quitado del carrito.')
+    setCouponMessageType('success')
   }
 
   if (cart.length === 0) {
@@ -72,19 +85,44 @@ function Carrito() {
 
       <div className="coupon-box">
         <h3>Cupón de descuento</h3>
+        <p>Ingresá un código vigente creado desde el panel de administración.</p>
+
         <form className="coupon-form" onSubmit={handleCouponSubmit}>
           <input
             value={couponInput}
-            onChange={(event) => setCouponInput(event.target.value)}
-            placeholder="Ingresá tu cupón"
+            onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+            placeholder="Ejemplo: FENIX15"
+            disabled={applyingCoupon}
           />
-          <button className="cart-remove-button" type="submit">Aplicar</button>
-        </form>
-        {couponMessage && <p className="form-message">{couponMessage}</p>}
-        {coupon && (
-          <button className="link-button" type="button" onClick={removeCoupon}>
-            Quitar cupón {coupon.code}
+          <button className="cart-remove-button" type="submit" disabled={applyingCoupon}>
+            {applyingCoupon ? 'Validando...' : 'Aplicar'}
           </button>
+        </form>
+
+        {couponMessage && (
+          <p className={`form-message form-message--${couponMessageType}`}>
+            {couponMessage}
+          </p>
+        )}
+
+        {coupon && (
+          <div className="applied-coupon">
+            <div>
+              <strong>{coupon.code}</strong> — {coupon.percentage}% de descuento
+              {Number(coupon.minPurchase) > 0 && (
+                <span> · Compra mínima: ${coupon.minPurchase}</span>
+              )}
+            </div>
+            <button className="link-button" type="button" onClick={handleRemoveCoupon}>
+              Quitar cupón
+            </button>
+          </div>
+        )}
+
+        {coupon && !couponStillEligible && (
+          <p className="form-message form-message--error">
+            El total actual ya no alcanza la compra mínima del cupón. El descuento no se aplicará.
+          </p>
         )}
       </div>
 

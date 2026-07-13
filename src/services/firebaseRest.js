@@ -92,6 +92,15 @@ function fromFirestoreValue(value = {}) {
   return ''
 }
 
+function fieldsFromObject(object) {
+  return {
+    fields: Object.entries(object).reduce((acc, [key, value]) => {
+      acc[key] = toFirestoreValue(value)
+      return acc
+    }, {})
+  }
+}
+
 function productToFirestore(product) {
   const cleanProduct = {
     titulo: product.titulo?.trim() || '',
@@ -104,12 +113,7 @@ function productToFirestore(product) {
     destacado: Boolean(product.destacado)
   }
 
-  return {
-    fields: Object.entries(cleanProduct).reduce((acc, [key, value]) => {
-      acc[key] = toFirestoreValue(value)
-      return acc
-    }, {})
-  }
+  return fieldsFromObject(cleanProduct)
 }
 
 function documentToProduct(document) {
@@ -126,6 +130,32 @@ function documentToProduct(document) {
     imagen: fromFirestoreValue(fields.imagen),
     sinopsis: fromFirestoreValue(fields.sinopsis),
     destacado: fromFirestoreValue(fields.destacado)
+  }
+}
+
+function couponToFirestore(coupon) {
+  const cleanCoupon = {
+    code: coupon.code?.trim().toUpperCase() || '',
+    percentage: Number(coupon.percentage),
+    minPurchase: Number(coupon.minPurchase || 0),
+    expirationDate: coupon.expirationDate?.trim() || '',
+    active: Boolean(coupon.active)
+  }
+
+  return fieldsFromObject(cleanCoupon)
+}
+
+function documentToCoupon(document) {
+  const fields = document.fields || {}
+  const docId = document.name?.split('/').pop()
+
+  return {
+    id: docId,
+    code: fromFirestoreValue(fields.code),
+    percentage: fromFirestoreValue(fields.percentage),
+    minPurchase: fromFirestoreValue(fields.minPurchase),
+    expirationDate: fromFirestoreValue(fields.expirationDate),
+    active: fromFirestoreValue(fields.active)
   }
 }
 
@@ -219,6 +249,91 @@ export async function deleteProduct(productId, idToken) {
   if (!response.ok) {
     const data = await response.json().catch(() => null)
     const message = data?.error?.message || 'No se pudo eliminar el producto.'
+    throw new Error(message)
+  }
+
+  return true
+}
+
+export async function getCoupons({ idToken } = {}) {
+  requireFirebaseConfig()
+
+  const response = await fetch(`${FIRESTORE_BASE_URL}/coupons?key=${API_KEY}`, {
+    headers: authHeaders(idToken)
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    const message = data?.error?.message || 'No se pudieron obtener los cupones.'
+    throw new Error(message)
+  }
+
+  return (data.documents || []).map(documentToCoupon)
+}
+
+export async function getCouponByCode(code) {
+  const normalizedCode = code.trim().toUpperCase()
+  const coupons = await getCoupons()
+  return coupons.find((coupon) => coupon.code === normalizedCode) || null
+}
+
+export async function createCoupon(coupon, idToken) {
+  requireFirebaseConfig()
+
+  const response = await fetch(`${FIRESTORE_BASE_URL}/coupons?key=${API_KEY}`, {
+    method: 'POST',
+    headers: authHeaders(idToken),
+    body: JSON.stringify(couponToFirestore(coupon))
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    const message = data?.error?.message || 'No se pudo crear el cupón.'
+    throw new Error(message)
+  }
+
+  return documentToCoupon(data)
+}
+
+export async function updateCoupon(couponId, coupon, idToken) {
+  requireFirebaseConfig()
+
+  const fieldPaths = ['code', 'percentage', 'minPurchase', 'expirationDate', 'active']
+    .map((field) => `updateMask.fieldPaths=${field}`)
+    .join('&')
+
+  const response = await fetch(
+    `${FIRESTORE_BASE_URL}/coupons/${couponId}?key=${API_KEY}&${fieldPaths}`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(idToken),
+      body: JSON.stringify(couponToFirestore(coupon))
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    const message = data?.error?.message || 'No se pudo actualizar el cupón.'
+    throw new Error(message)
+  }
+
+  return documentToCoupon(data)
+}
+
+export async function deleteCoupon(couponId, idToken) {
+  requireFirebaseConfig()
+
+  const response = await fetch(`${FIRESTORE_BASE_URL}/coupons/${couponId}?key=${API_KEY}`, {
+    method: 'DELETE',
+    headers: authHeaders(idToken)
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    const message = data?.error?.message || 'No se pudo eliminar el cupón.'
     throw new Error(message)
   }
 

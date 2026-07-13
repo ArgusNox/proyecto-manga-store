@@ -1,11 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useState } from 'react'
+import { getCouponByCode } from '../services/firebaseRest'
 
 const CartContext = createContext()
-const COUPONS = {
-  MANGA10: 0.1,
-  FENIX15: 0.15
-}
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([])
@@ -36,22 +33,6 @@ export function CartProvider({ children }) {
     setCoupon(null)
   }
 
-  const applyCoupon = (code) => {
-    const normalizedCode = code.trim().toUpperCase()
-    const discountRate = COUPONS[normalizedCode]
-
-    if (!discountRate) {
-      return false
-    }
-
-    setCoupon({ code: normalizedCode, discountRate })
-    return true
-  }
-
-  const removeCoupon = () => {
-    setCoupon(null)
-  }
-
   const cartCount = useMemo(() => {
     return cart.reduce((acc, item) => acc + item.quantity, 0)
   }, [cart])
@@ -60,10 +41,63 @@ export function CartProvider({ children }) {
     return cart.reduce((acc, item) => acc + item.precio * item.quantity, 0)
   }, [cart])
 
-  const discountAmount = useMemo(() => {
-    if (!coupon) return 0
-    return Math.round(cartTotalBeforeDiscount * coupon.discountRate)
+  const applyCoupon = async (code) => {
+    const normalizedCode = code.trim().toUpperCase()
+
+    if (!normalizedCode) {
+      return { ok: false, message: 'Ingresá un código de cupón.' }
+    }
+
+    try {
+      const foundCoupon = await getCouponByCode(normalizedCode)
+
+      if (!foundCoupon) {
+        return { ok: false, message: 'El cupón ingresado no existe.' }
+      }
+
+      if (!foundCoupon.active) {
+        return { ok: false, message: 'El cupón está desactivado.' }
+      }
+
+      const today = new Date().toISOString().slice(0, 10)
+      if (foundCoupon.expirationDate && foundCoupon.expirationDate < today) {
+        return { ok: false, message: 'El cupón está vencido.' }
+      }
+
+      if (cartTotalBeforeDiscount < Number(foundCoupon.minPurchase || 0)) {
+        return {
+          ok: false,
+          message: `El cupón requiere una compra mínima de $${foundCoupon.minPurchase}.`
+        }
+      }
+
+      setCoupon({
+        ...foundCoupon,
+        discountRate: Number(foundCoupon.percentage) / 100
+      })
+
+      return {
+        ok: true,
+        message: `Cupón ${foundCoupon.code} aplicado: ${foundCoupon.percentage}% de descuento.`
+      }
+    } catch (error) {
+      return { ok: false, message: error.message }
+    }
+  }
+
+  const removeCoupon = () => {
+    setCoupon(null)
+  }
+
+  const couponStillEligible = useMemo(() => {
+    if (!coupon) return false
+    return cartTotalBeforeDiscount >= Number(coupon.minPurchase || 0)
   }, [cartTotalBeforeDiscount, coupon])
+
+  const discountAmount = useMemo(() => {
+    if (!coupon || !couponStillEligible) return 0
+    return Math.round(cartTotalBeforeDiscount * coupon.discountRate)
+  }, [cartTotalBeforeDiscount, coupon, couponStillEligible])
 
   const cartTotal = useMemo(() => {
     return Math.max(cartTotalBeforeDiscount - discountAmount, 0)
@@ -79,6 +113,7 @@ export function CartProvider({ children }) {
         applyCoupon,
         removeCoupon,
         coupon,
+        couponStillEligible,
         cartCount,
         cartTotalBeforeDiscount,
         discountAmount,

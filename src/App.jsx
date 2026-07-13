@@ -8,6 +8,7 @@ import Carrito from './pages/Carrito'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import AdminProductos from './pages/AdminProductos'
+import AdminCupones from './pages/AdminCupones'
 
 function App() {
   return (
@@ -24,6 +25,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminProductos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/cupones"
+          element={
+            <ProtectedRoute>
+              <AdminCupones />
             </ProtectedRoute>
           }
         />
