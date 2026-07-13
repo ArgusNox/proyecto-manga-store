@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHouse, faBookOpen, faUserGear, faRightToBracket, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import {
+  faHouse,
+  faBookOpen,
+  faUserGear,
+  faTicket,
+  faRightToBracket,
+  faRightFromBracket
+} from '@fortawesome/free-solid-svg-icons'
 import CartWidget from '../CartWidget/CartWidget'
 import { useAuth } from '../../context/AuthContext'
 
@@ -18,9 +25,14 @@ function NavBar() {
       </Link>
 
       {isAuthenticated && (
-        <Link to="/admin/productos">
-          <FontAwesomeIcon icon={faUserGear} /> Admin
-        </Link>
+        <>
+          <Link to="/admin/productos">
+            <FontAwesomeIcon icon={faUserGear} /> Productos
+          </Link>
+          <Link to="/admin/cupones">
+            <FontAwesomeIcon icon={faTicket} /> Cupones
+          </Link>
+        </>
       )}
 
       {isAuthenticated ? (
