@@ -116,13 +116,15 @@
   width: auto;
 }
 
-.admin-product-list {
+.admin-product-list,
+.coupon-admin-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.admin-product-card {
+.admin-product-card,
+.coupon-admin-card {
   background-color: #fff;
   border: 1px solid var(--color-light);
   border-radius: 16px;
@@ -138,6 +140,35 @@
   height: 140px;
   object-fit: cover;
   border-radius: 10px;
+}
+
+.coupon-admin-card {
+  grid-template-columns: 1fr auto;
+  border-left: 6px solid var(--color-secondary);
+}
+
+.coupon-admin-title {
+  display: flex;
+  gap: .7rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: .3rem .65rem;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.status-badge--active {
+  background-color: #dff5e6;
+  color: #19552b;
+}
+
+.status-badge--inactive {
+  background-color: #ffe5e5;
+  color: #8a1c1c;
 }
 
 .danger-button {
@@ -160,6 +191,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  z-index: 100;
 }
 
 .confirm-modal,
@@ -174,6 +206,33 @@
   max-width: 460px;
 }
 
+.coupon-box {
+  margin-top: 1.5rem;
+}
+
+.coupon-form {
+  justify-content: flex-start;
+  margin-top: .9rem;
+}
+
+.coupon-form input {
+  max-width: 340px;
+  text-transform: uppercase;
+}
+
+.applied-coupon {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px dashed var(--color-secondary);
+  background-color: #eef5fb;
+  border-radius: 12px;
+  padding: .9rem 1rem;
+}
+
 .link-button {
   margin-top: .6rem;
   background: transparent;
@@ -184,7 +243,9 @@
   font-weight: 700;
 }
 
-.detail-button:disabled {
+.detail-button:disabled,
+.cart-remove-button:disabled,
+.danger-button:disabled {
   background-color: #999;
   cursor: not-allowed;
 }
@@ -208,12 +269,17 @@
   }
 
   .admin-form--grid,
-  .admin-product-card {
+  .admin-product-card,
+  .coupon-admin-card {
     grid-template-columns: 1fr;
   }
 
   .admin-product-card img {
     width: 100%;
     height: 260px;
+  }
+
+  .coupon-form input {
+    max-width: none;
   }
 }
